@@ -12,6 +12,7 @@ interface Props {
   listName?: string;
   onToggle: () => void;
   onDelete: () => void;
+  onEdit: () => void;
 }
 
 function formatDueDate(iso: string): string {
@@ -24,7 +25,7 @@ function formatDueDate(iso: string): string {
   });
 }
 
-export default function TaskCard({ task, listName, onToggle, onDelete }: Props) {
+export default function TaskCard({ task, listName, onToggle, onDelete, onEdit }: Props) {
   const overdue = isOverdue(task);
 
   const handleDelete = () => {
@@ -42,7 +43,7 @@ export default function TaskCard({ task, listName, onToggle, onDelete }: Props) 
         </Neumorphic>
       </Pressable>
 
-      <View style={styles.body}>
+      <Pressable style={styles.body} onPress={onEdit}>
         <Text
           style={[styles.title, task.completed && styles.titleDone]}
           numberOfLines={2}
@@ -61,7 +62,7 @@ export default function TaskCard({ task, listName, onToggle, onDelete }: Props) 
             </View>
           ) : null}
         </View>
-      </View>
+      </Pressable>
 
       <Pressable onPress={handleDelete} hitSlop={8} style={styles.deleteBtn}>
         <Trash2 size={18} color={colors.textTertiary} strokeWidth={1.75} />

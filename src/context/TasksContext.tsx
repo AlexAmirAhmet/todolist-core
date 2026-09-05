@@ -21,6 +21,7 @@ interface TasksContextValue {
   tasks: Task[];
   isLoading: boolean;
   addTask: (input: NewTaskInput) => void;
+  updateTask: (id: string, input: NewTaskInput) => void;
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   addList: (name: string) => TaskList;
@@ -59,6 +60,23 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
     setData((prev) => ({ ...prev, tasks: [...prev.tasks, task] }));
   };
 
+  const updateTask = (id: string, input: NewTaskInput) => {
+    setData((prev) => ({
+      ...prev,
+      tasks: prev.tasks.map((task) =>
+        task.id === id
+          ? {
+              ...task,
+              title: input.title.trim(),
+              listId: input.listId,
+              priority: input.priority,
+              dueAt: input.dueAt,
+            }
+          : task
+      ),
+    }));
+  };
+
   const toggleTask = (id: string) => {
     setData((prev) => ({
       ...prev,
@@ -88,6 +106,7 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
         tasks: data.tasks,
         isLoading,
         addTask,
+        updateTask,
         toggleTask,
         deleteTask,
         addList,

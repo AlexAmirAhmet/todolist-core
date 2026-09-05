@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { CalendarClock, X } from 'lucide-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { Priority, TaskList } from '../types';
+import { Priority, Task, TaskList } from '../types';
 import { NewTaskInput } from '../context/TasksContext';
 import { colors, priorityColors, priorityLabels, radii, spacing } from '../theme';
 import Neumorphic from './Neumorphic';
@@ -23,6 +23,7 @@ interface Props {
   visible: boolean;
   lists: TaskList[];
   defaultListId: string;
+  editingTask?: Task | null;
   onClose: () => void;
   onSubmit: (input: NewTaskInput) => void;
 }
@@ -38,7 +39,15 @@ function formatDueDate(date: Date): string {
   });
 }
 
-export default function AddTaskSheet({ visible, lists, defaultListId, onClose, onSubmit }: Props) {
+export default function AddTaskSheet({
+  visible,
+  lists,
+  defaultListId,
+  editingTask,
+  onClose,
+  onSubmit,
+}: Props) {
+  const isEditing = !!editingTask;
   const [title, setTitle] = useState('');
   const [listId, setListId] = useState(defaultListId);
   const [priority, setPriority] = useState<Priority>('medium');
@@ -48,10 +57,19 @@ export default function AddTaskSheet({ visible, lists, defaultListId, onClose, o
   const [showIosPicker, setShowIosPicker] = useState(false);
 
   useEffect(() => {
-    if (visible) {
+    if (!visible) return;
+    if (editingTask) {
+      setTitle(editingTask.title);
+      setListId(editingTask.listId);
+      setPriority(editingTask.priority);
+      setDueDate(editingTask.dueAt ? new Date(editingTask.dueAt) : null);
+    } else {
+      setTitle('');
+      setPriority('medium');
+      setDueDate(null);
       setListId(defaultListId === 'all' ? lists[0]?.id ?? defaultListId : defaultListId);
     }
-  }, [visible, defaultListId, lists]);
+  }, [visible, editingTask, defaultListId, lists]);
 
   const reset = () => {
     setTitle('');
@@ -120,6 +138,7 @@ export default function AddTaskSheet({ visible, lists, defaultListId, onClose, o
           <Pressable onPress={(e) => e.stopPropagation()}>
             <Neumorphic radius={radii.sheet} style={styles.sheet}>
               <View style={styles.handle} />
+              <Text style={styles.heading}>{isEditing ? 'Изменить задачу' : 'Новая задача'}</Text>
               <ScrollView showsVerticalScrollIndicator={false}>
                 <Text style={styles.label}>Название</Text>
                 <Neumorphic radius={14} inset style={styles.inputWrap}>
@@ -209,7 +228,7 @@ export default function AddTaskSheet({ visible, lists, defaultListId, onClose, o
                   style={styles.actionBtn}
                 >
                   <Text style={[styles.saveText, !title.trim() && styles.saveTextDisabled]}>
-                    Добавить
+                    {isEditing ? 'Сохранить' : 'Добавить'}
                   </Text>
                 </Pressable>
               </View>
@@ -244,6 +263,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.shadowDark,
     opacity: 0.5,
     marginBottom: spacing.md,
+  },
+  heading: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
   label: {
     fontSize: 13,
